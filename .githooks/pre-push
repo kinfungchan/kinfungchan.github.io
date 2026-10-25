@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+repo_root="$(git rev-parse --show-toplevel)"
+node "$repo_root/scripts/check-sensitive-files.mjs"
+node "$repo_root/scripts/check-public-artifact.mjs"
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --redact --verbose "$repo_root"
+elif [ -x "$repo_root/.tools/gitleaks/gitleaks.exe" ]; then
+  "$repo_root/.tools/gitleaks/gitleaks.exe" git --redact --verbose "$repo_root"
+else
+  echo "Gitleaks is required. Install it from https://github.com/gitleaks/gitleaks and retry." >&2
+  exit 1
+fi
